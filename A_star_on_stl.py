@@ -113,17 +113,6 @@ def plot_graph(E,v,path):
 
 # Dijkstra path planning algorithm
 def dijkstra_search(graph, start, goal):
-    
-    def reconstruct_path(came_from, start, goal):
-        current = goal
-        path = []
-        while current != start:
-            path.append(current)
-            current = came_from[current]
-        path.append(start) # optional
-        path.reverse() # optional
-        return path
-    
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {}
@@ -144,28 +133,69 @@ def dijkstra_search(graph, start, goal):
                 priority = new_cost
                 frontier.put(next, priority)
                 came_from[next] = current
-        
-    path = reconstruct_path(came_from, start, goal)
-    return path
+    return came_from, cost_so_far
 
+def heuristic(from_node, to_node):
+        a = np.asarray(from_node)
+        b = np.asarray(to_node)
+        return np.linalg.norm(a-b)
+
+def a_star_search(graph, start, goal):
+    frontier = PriorityQueue()
+    frontier.put(start, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start] = None
+    cost_so_far[start] = 0
+    
+    while not frontier.empty():
+        current = frontier.get()
+        
+        if current == goal:
+            break
+        
+        for next in graph.neighbors(current):
+            new_cost = cost_so_far[current] + graph.cost(current, next)
+            if next not in cost_so_far or new_cost < cost_so_far[next]:
+                cost_so_far[next] = new_cost
+                priority = new_cost + heuristic(goal, next)
+                frontier.put(next, priority)
+                came_from[next] = current
+    
+    return came_from, cost_so_far
+
+def reconstruct_path(came_from, start, goal):
+        current = goal
+        path = []
+        while current != start:
+            path.append(current)
+            current = came_from[current]
+        path.append(start) # optional
+        path.reverse() # optional
+        return path
 
 """ Main  """
 
 # Using an existing stl file:
-stl_mesh = mesh.Mesh.from_file('Part3.stl')
+stl_mesh = mesh.Mesh.from_file('f35.stl')
 
 # Generate graph vectors
 E,v = stl_to_graph(stl_mesh)
 
 # Define start and end point on stl file
-start = tuple(v[0])
-goal = tuple(v[len(v)-1])
+start = tuple(v[10])
+goal = tuple(v[len(v)-10])
 
 # Create graph element 
 graph = StlGraph(E,v)
 
-# Calculate optimal path using Dijkstra
-path = dijkstra_search(graph, start, goal)
+# Dijkstra
+#came_from, cost_so_far = dijkstra_search(graph, start, goal)
+
+# A*
+came_from, cost_so_far = a_star_search(graph, start, goal)
+
+path = reconstruct_path(came_from, start, goal)
 
 # Plot result
 plot_graph(E,v,path)
