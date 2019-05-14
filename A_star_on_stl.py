@@ -10,6 +10,7 @@ Created on Tue May 14 08:54:49 2019
 import numpy as np
 from stl import mesh
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import heapq
 
 # Queue class used in Dikjkstra. 
@@ -169,7 +170,7 @@ path = dijkstra_search(graph, start, goal)
 # Plot result
 plot_graph(E,v,path)
     
-    
+
 
 
     
